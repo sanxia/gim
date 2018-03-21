@@ -194,19 +194,31 @@ type OfflineResult struct {
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * 数据错误数据结构
+ * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+type ResponseError struct {
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+	Exception        string `json:"exception"`
+	Duration         int    `json:"duration"`
+	Timestamp        int    `json:"timestamp"`
+}
+
+/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * IChatClient接口
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 type IChatClient interface {
 	IsOnline(username string) (bool, error)
 
 	GetAccessToken() (*TokenResponse, error)
-	GetUser(username string) (*GetUserResponse, error)
+	GetUser(token, username string) (*GetUserResponse, error)
 
-	CreateUser(request []*CreateUserRequest) (*CreateUserResponse, error)
+	CreateUser(token, username, password string) (*CreateUserResponse, error)
+	CreateUsers(token string, requestData []*CreateUserRequest) (*CreateUserResponse, error)
 	ResetPassword(username string) (*ResetPasswordResponse, error)
 
-	SendTextMessage(request *TextMessageRequest) (*TextMessageResponse, error)
-	SendImageMessage(request *ImageMessageRequest) (*ImageMessageResponse, error)
+	SendTextMessage(requestData *TextMessageRequest) (*TextMessageResponse, error)
+	SendImageMessage(requestData *ImageMessageRequest) (*ImageMessageResponse, error)
 
 	GetOfflineMessageCount(username string) (*OfflineMessageCountResponse, error)
 	Offline(username string) (*OfflineResponse, error)
