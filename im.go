@@ -114,8 +114,8 @@ type ResetPasswordResponse struct {
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 type TextMessageRequest struct {
 	MessageTarget
-	TextMessage
-	From string `json:"from"` //表示消息发送者。无此字段Server会默认设置为"from":"admin"
+	Message TextMessage `json:"msg"`
+	From    string      `json:"from"` //表示消息发送者。无此字段Server会默认设置为"from":"admin"
 }
 
 type MessageTarget struct {
@@ -124,8 +124,8 @@ type MessageTarget struct {
 }
 
 type TextMessage struct {
-	Type string   `json:"type"` //消息类型 txt
-	Msg  []string `json:"msg"`  //消息内容
+	Type string `json:"type"` //消息类型 txt
+	Msg  string `json:"msg"`  //消息内容
 }
 
 type TextMessageResponse struct {
@@ -139,8 +139,8 @@ type TextMessageResponse struct {
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 type ImageMessageRequest struct {
 	MessageTarget
-	ImageMessage
-	From string `json:"from"` //表示消息发送者。无此字段Server会默认设置为"from":"admin"
+	Message ImageMessage `json:"msg"`
+	From    string       `json:"from"` //表示消息发送者。无此字段Server会默认设置为"from":"admin"
 }
 
 type ImageMessage struct {
@@ -194,9 +194,9 @@ type OfflineResult struct {
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * 数据错误数据结构
+ * 数据错误响应数据结构
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-type ResponseError struct {
+type ErrorResponse struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 	Exception        string `json:"exception"`
@@ -217,9 +217,9 @@ type IChatClient interface {
 	CreateUsers(token string, requestData []*CreateUserRequest) (*CreateUserResponse, error)
 	ResetPassword(username string) (*ResetPasswordResponse, error)
 
-	SendTextMessage(requestData *TextMessageRequest) (*TextMessageResponse, error)
-	SendImageMessage(requestData *ImageMessageRequest) (*ImageMessageResponse, error)
+	SendTextMessage(token, fromUsername string, toUsernames []string, content string) (*TextMessageResponse, error)
+	SendImageMessage(token, fromUsername string, toUsernames []string, url, secret string, width, height int) (*ImageMessageResponse, error)
 
-	GetOfflineMessageCount(username string) (*OfflineMessageCountResponse, error)
-	Offline(username string) (*OfflineResponse, error)
+	GetOfflineMessageCount(token, username string) (*OfflineMessageCountResponse, error)
+	Offline(token, username string) (*OfflineResponse, error)
 }

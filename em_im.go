@@ -21,8 +21,9 @@ import (
  * emChatClient数据结构
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 type emChatClient struct {
-	org OrgOption
-	app AppOption
+	org         OrgOption
+	app         AppOption
+	accessToken string
 }
 
 const applicationBaseUrl string = "https://a1.easemob.com/easemob-playground/test1"
@@ -87,13 +88,13 @@ func (c *emChatClient) GetAccessToken() (*TokenResponse, error) {
 	glib.FromJson(data, &tokenResponse)
 
 	//错误处理
-	if tokenResponse == nil {
-		var responseError *ResponseError
-		glib.FromJson(data, &responseError)
-		if responseError != nil {
-			err = errors.New(responseError.Error)
-		}
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
 	}
+
+	c.accessToken = tokenResponse.AccessToken
 
 	return tokenResponse, err
 }
@@ -127,12 +128,10 @@ func (c *emChatClient) GetUser(token, username string) (*GetUserResponse, error)
 	glib.FromJson(data, &getUserResponse)
 
 	//错误处理
-	if getUserResponse == nil {
-		var responseError *ResponseError
-		glib.FromJson(data, &responseError)
-		if responseError != nil {
-			err = errors.New(responseError.Error)
-		}
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
 	}
 
 	return getUserResponse, err
@@ -184,16 +183,10 @@ func (c *emChatClient) CreateUsers(token string, requestData []*CreateUserReques
 	glib.FromJson(data, &createUserResponse)
 
 	//错误处理
-	if createUserResponse == nil {
-		log.Print("CreateUsers createUserResponse nil")
-		var responseError *ResponseError
-		glib.FromJson(data, &responseError)
-		log.Printf("CreateUsers responseError: %v", responseError)
-		if responseError != nil {
-			err = errors.New(responseError.Error)
-		}
-	} else {
-		log.Printf("CreateUsers createUserResponse not nil: %v", createUserResponse)
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
 	}
 
 	return createUserResponse, err
@@ -210,31 +203,185 @@ func (c *emChatClient) ResetPassword(username string) (*ResetPasswordResponse, e
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 发送文本消息
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func (c *emChatClient) SendTextMessage(requestData *TextMessageRequest) (*TextMessageResponse, error) {
+func (c *emChatClient) SendTextMessage(token, fromUsername string, toUsernames []string, content string) (*TextMessageResponse, error) {
+	var err error
 
-	return nil, nil
+	messageUrl := fmt.Sprintf("%s/%s", applicationBaseUrl, "messages")
+	authorization := fmt.Sprintf("Bearer %s", token)
+
+	headers := map[string]string{
+		"Content-Type":  "application/json;charset=utf-8",
+		"Authorization": authorization,
+	}
+	request := glib.NewHttpRequest()
+	request.SetHeaders(headers)
+
+	//设置json数据
+	requestData := new(TextMessageRequest)
+	requestData.TargetType = "users"
+	requestData.Target = toUsernames
+	requestData.From = fromUsername
+	requestData.Message = TextMessage{
+		Type: "txt",
+		Msg:  content,
+	}
+
+	request.SetJson(requestData)
+
+	//发送请求
+	httpResponse, err := request.Post(messageUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	//解析数据
+	data := string(httpResponse.GetData())
+	log.Printf("TextMessage raw data: %s", data)
+
+	var messageResponse *TextMessageResponse
+	glib.FromJson(data, &messageResponse)
+
+	//错误处理
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
+	}
+
+	return messageResponse, err
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 发送图片消息
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func (c *emChatClient) SendImageMessage(requestData *ImageMessageRequest) (*ImageMessageResponse, error) {
+func (c *emChatClient) SendImageMessage(token, fromUsername string, toUsernames []string, url, secret string, width, height int) (*ImageMessageResponse, error) {
+	var err error
 
-	return nil, nil
+	messageUrl := fmt.Sprintf("%s/%s", applicationBaseUrl, "messages")
+	authorization := fmt.Sprintf("Bearer %s", token)
+
+	headers := map[string]string{
+		"Content-Type":  "application/json;charset=utf-8",
+		"Authorization": authorization,
+	}
+	request := glib.NewHttpRequest()
+	request.SetHeaders(headers)
+
+	//设置json数据
+	filename := glib.RandString(16)
+	requestData := new(ImageMessageRequest)
+	requestData.TargetType = "users"
+	requestData.Target = toUsernames
+	requestData.From = fromUsername
+	requestData.Message = ImageMessage{
+		Type:     "img",
+		Url:      url,
+		Filename: filename,
+		Secret:   secret,
+		ImageSize: ImageSize{
+			Width:  width,
+			Height: height,
+		},
+	}
+
+	request.SetJson(requestData)
+
+	//发送请求
+	httpResponse, err := request.Post(messageUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	//解析数据
+	data := string(httpResponse.GetData())
+	log.Printf("ImageMessage raw data: %s", data)
+
+	var messageResponse *ImageMessageResponse
+	glib.FromJson(data, &messageResponse)
+
+	//错误处理
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
+	}
+
+	return messageResponse, err
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 获取用户的离线消息数
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func (c *emChatClient) GetOfflineMessageCount(username string) (*OfflineMessageCountResponse, error) {
+func (c *emChatClient) GetOfflineMessageCount(token, username string) (*OfflineMessageCountResponse, error) {
+	var err error
+	userUrl := fmt.Sprintf("%s/users/%s/offline_msg_count", applicationBaseUrl, username)
+	authorization := fmt.Sprintf("Bearer %s", token)
 
-	return nil, nil
+	//请求头
+	headers := map[string]string{
+		"Authorization": authorization,
+	}
+	request := glib.NewHttpRequest()
+	request.SetHeaders(headers)
+
+	//发送请求
+	httpResponse, err := request.Get(userUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	//解析数据
+	data := string(httpResponse.GetData())
+	log.Printf("Offline raw data: %s", data)
+
+	var offlineMessageCountResponse *OfflineMessageCountResponse
+	glib.FromJson(data, &offlineMessageCountResponse)
+
+	//错误处理
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
+	}
+
+	return offlineMessageCountResponse, err
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 下线用户
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func (c *emChatClient) Offline(username string) (*OfflineResponse, error) {
+func (c *emChatClient) Offline(token, username string) (*OfflineResponse, error) {
+	var err error
+	userUrl := fmt.Sprintf("%s/users/%s/disconnect", applicationBaseUrl, username)
+	authorization := fmt.Sprintf("Bearer %s", token)
 
-	return nil, nil
+	//请求头
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": authorization,
+	}
+	request := glib.NewHttpRequest()
+	request.SetHeaders(headers)
+
+	//发送请求
+	httpResponse, err := request.Get(userUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	//解析数据
+	data := string(httpResponse.GetData())
+	log.Printf("Offline raw data: %s", data)
+
+	var offlineResponse *OfflineResponse
+	glib.FromJson(data, &offlineResponse)
+
+	//错误处理
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
+	}
+
+	return offlineResponse, err
 }
