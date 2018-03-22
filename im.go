@@ -214,7 +214,7 @@ type IChatClient interface {
 	GetAccessToken() (*TokenResponse, error)
 	GetUser(token, username string) (*GetUserResponse, error)
 
-	CreateUser(token, username, password string) (*CreateUserResponse, error)
+	CreateUser(token, username, password, nickname string) (*CreateUserResponse, error)
 	CreateUsers(token string, requestData []*CreateUserRequest) (*CreateUserResponse, error)
 	ResetPassword(username string) (*ResetPasswordResponse, error)
 

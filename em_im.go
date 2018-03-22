@@ -140,11 +140,16 @@ func (c *emChatClient) GetUser(token, username string) (*GetUserResponse, error)
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 创建用户
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func (c *emChatClient) CreateUser(token, username, password string) (*CreateUserResponse, error) {
+func (c *emChatClient) CreateUser(token, username, password, nickname string) (*CreateUserResponse, error) {
+	if len(nickname) == 0 {
+		nickname = glib.RandString(32)
+	}
+
 	users := make([]*CreateUserRequest, 0)
 	user := &CreateUserRequest{
 		Username: username,
 		Password: password,
+		Nickname: nickname,
 	}
 	users = append(users, user)
 
