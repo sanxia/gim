@@ -77,8 +77,8 @@ type CreateUserResult struct {
 	Username  string `json:"username"`
 	Type      string `json:"type"`
 	Activated bool   `json:"activated"`
-	Created   string `json:"created"`
-	Modified  string `json:"modified"`
+	Created   int    `json:"created"`
+	Modified  int    `json:"modified"`
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
