@@ -73,11 +73,12 @@ type BaseResult struct {
  * 创建用户结果数据结构
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 type CreateUserResult struct {
-	Uuid     string `json:"uuid"`
-	Username string `json:"username"`
-	Type     string `json:"type"`
-	Created  string `json:"created"`
-	Modified string `json:"modified"`
+	Uuid      string `json:"uuid"`
+	Username  string `json:"username"`
+	Type      string `json:"type"`
+	Activated bool   `json:"activated"`
+	Created   string `json:"created"`
+	Modified  string `json:"modified"`
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -24,14 +24,13 @@ type emChatClient struct {
 	org         OrgOption
 	app         AppOption
 	accessToken string
+	baseUrl     string
 }
-
-const applicationBaseUrl string = "https://a1.easemob.com/easemob-playground/test1"
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 初始化emChatClient
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-func NewEmChatClient(orgName, appName, clientId, clientSecret string) IChatClient {
+func NewEmChatClient(host, orgName, appName, clientId, clientSecret string) IChatClient {
 	client := &emChatClient{
 		org: OrgOption{
 			OrgName: orgName,
@@ -41,6 +40,7 @@ func NewEmChatClient(orgName, appName, clientId, clientSecret string) IChatClien
 			ClientId:     clientId,
 			ClientSecret: clientSecret,
 		},
+		baseUrl: fmt.Sprintf("%s/%s/%s", host, orgName, appName),
 	}
 
 	return client
@@ -59,7 +59,7 @@ func (c *emChatClient) IsOnline(username string) (bool, error) {
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 func (c *emChatClient) GetAccessToken() (*TokenResponse, error) {
 	var err error
-	applicationTokenUrl := applicationBaseUrl + "/token"
+	applicationTokenUrl := c.baseUrl + "/token"
 
 	headers := map[string]string{
 		"Content-Type": "application/json;charset=utf-8",
@@ -104,7 +104,7 @@ func (c *emChatClient) GetAccessToken() (*TokenResponse, error) {
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 func (c *emChatClient) GetUser(token, username string) (*GetUserResponse, error) {
 	var err error
-	userUrl := fmt.Sprintf("%s/%s/%s", applicationBaseUrl, "users", username)
+	userUrl := fmt.Sprintf("%s/%s/%s", c.baseUrl, "users", username)
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	//请求头
@@ -157,7 +157,7 @@ func (c *emChatClient) CreateUser(token, username, password string) (*CreateUser
 func (c *emChatClient) CreateUsers(token string, requestData []*CreateUserRequest) (*CreateUserResponse, error) {
 	var err error
 
-	createUserUrl := fmt.Sprintf("%s/%s", applicationBaseUrl, "users")
+	createUserUrl := fmt.Sprintf("%s/%s", c.baseUrl, "users")
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	headers := map[string]string{
@@ -206,7 +206,7 @@ func (c *emChatClient) ResetPassword(username string) (*ResetPasswordResponse, e
 func (c *emChatClient) SendTextMessage(token, fromUsername string, toUsernames []string, content string) (*TextMessageResponse, error) {
 	var err error
 
-	messageUrl := fmt.Sprintf("%s/%s", applicationBaseUrl, "messages")
+	messageUrl := fmt.Sprintf("%s/%s", c.baseUrl, "messages")
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	headers := map[string]string{
@@ -257,7 +257,7 @@ func (c *emChatClient) SendTextMessage(token, fromUsername string, toUsernames [
 func (c *emChatClient) SendImageMessage(token, fromUsername string, toUsernames []string, url, secret string, width, height int) (*ImageMessageResponse, error) {
 	var err error
 
-	messageUrl := fmt.Sprintf("%s/%s", applicationBaseUrl, "messages")
+	messageUrl := fmt.Sprintf("%s/%s", c.baseUrl, "messages")
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	headers := map[string]string{
@@ -314,7 +314,7 @@ func (c *emChatClient) SendImageMessage(token, fromUsername string, toUsernames 
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 func (c *emChatClient) GetOfflineMessageCount(token, username string) (*OfflineMessageCountResponse, error) {
 	var err error
-	userUrl := fmt.Sprintf("%s/users/%s/offline_msg_count", applicationBaseUrl, username)
+	userUrl := fmt.Sprintf("%s/users/%s/offline_msg_count", c.baseUrl, username)
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	//请求头
@@ -352,7 +352,7 @@ func (c *emChatClient) GetOfflineMessageCount(token, username string) (*OfflineM
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 func (c *emChatClient) Offline(token, username string) (*OfflineResponse, error) {
 	var err error
-	userUrl := fmt.Sprintf("%s/users/%s/disconnect", applicationBaseUrl, username)
+	userUrl := fmt.Sprintf("%s/users/%s/disconnect", c.baseUrl, username)
 	authorization := fmt.Sprintf("Bearer %s", token)
 
 	//请求头
