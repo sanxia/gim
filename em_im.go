@@ -257,6 +257,61 @@ func (c *emChatClient) SendTextMessage(token, fromUsername string, toUsernames [
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * 发送文本扩展消息
+ * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+func (c *emChatClient) SendTextExtMessage(token, fromUsername string, toUsernames []string, content string, ext map[string]interface{}) (*TextMessageResponse, error) {
+	var err error
+
+	messageUrl := fmt.Sprintf("%s/%s", c.baseUrl, "messages")
+	authorization := fmt.Sprintf("Bearer %s", token)
+
+	headers := map[string]string{
+		"Content-Type":  "application/json;charset=utf-8",
+		"Authorization": authorization,
+	}
+	request := glib.NewHttpRequest()
+	request.SetHeaders(headers)
+
+	//设置json数据
+	requestData := new(TextExtMessageRequest)
+	requestData.TargetType = "users"
+	requestData.Target = toUsernames
+	requestData.From = fromUsername
+	requestData.Message = TextMessage{
+		Type: "txt",
+		Msg:  content,
+	}
+
+	if len(ext) > 0 {
+		requestData.Ext = ext
+	}
+
+	request.SetJson(requestData)
+
+	//发送请求
+	httpResponse, err := request.Post(messageUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	//解析数据
+	data := string(httpResponse.GetData())
+	log.Printf("TextExtMessage raw data: %s", data)
+
+	var messageResponse *TextMessageResponse
+	glib.FromJson(data, &messageResponse)
+
+	//错误处理
+	var errorResponse *ErrorResponse
+	glib.FromJson(data, &errorResponse)
+	if len(errorResponse.Error) > 0 {
+		err = errors.New(errorResponse.Error)
+	}
+
+	return messageResponse, err
+}
+
+/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * 发送图片消息
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 func (c *emChatClient) SendImageMessage(token, fromUsername string, toUsernames []string, url, secret string, width, height int) (*ImageMessageResponse, error) {

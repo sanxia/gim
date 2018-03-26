@@ -119,6 +119,11 @@ type TextMessageRequest struct {
 	From    string      `json:"from"` //表示消息发送者。无此字段Server会默认设置为"from":"admin"
 }
 
+type TextExtMessageRequest struct {
+	TextMessageRequest
+	Ext map[string]interface{} `json:"ext"` //扩展数据
+}
+
 type MessageTarget struct {
 	TargetType string   `json:"target_type"` //users 给用户发消息。chatgroups: 给群发消息，chatrooms: 给聊天室发消息
 	Target     []string `json:"target"`      //即使只有一个用户也要用数组 ['u1']，给用户发送时数组元素是用户名，给群组发送时数组元素是groupid
@@ -219,6 +224,8 @@ type IChatClient interface {
 	ResetPassword(username string) (*ResetPasswordResponse, error)
 
 	SendTextMessage(token, fromUsername string, toUsernames []string, content string) (*TextMessageResponse, error)
+	SendTextExtMessage(token, fromUsername string, toUsernames []string, content string, ext map[string]interface{}) (*TextMessageResponse, error)
+
 	SendImageMessage(token, fromUsername string, toUsernames []string, url, secret string, width, height int) (*ImageMessageResponse, error)
 
 	GetOfflineMessageCount(token, username string) (*OfflineMessageCountResponse, error)
