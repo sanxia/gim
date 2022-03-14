@@ -7,6 +7,7 @@ import (
 )
 
 import (
+	"github.com/sanxia/ghttp"
 	"github.com/sanxia/glib"
 )
 
@@ -64,7 +65,7 @@ func (c *emChatClient) GetAccessToken() (*TokenResponse, error) {
 	headers := map[string]string{
 		"Content-Type": "application/json;charset=utf-8",
 	}
-	request := glib.NewHttpRequest()
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//设置json数据
@@ -111,7 +112,7 @@ func (c *emChatClient) GetUser(token, username string) (*GetUserResponse, error)
 	headers := map[string]string{
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//发送请求
@@ -168,7 +169,7 @@ func (c *emChatClient) CreateUsers(token string, requestData []*CreateUserReques
 	headers := map[string]string{
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//设置json数据
@@ -218,7 +219,8 @@ func (c *emChatClient) SendTextMessage(token, fromUsername string, toUsernames [
 		"Content-Type":  "application/json;charset=utf-8",
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//设置json数据
@@ -269,7 +271,8 @@ func (c *emChatClient) SendTextExtMessage(token, fromUsername string, toUsername
 		"Content-Type":  "application/json;charset=utf-8",
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//设置json数据
@@ -324,7 +327,8 @@ func (c *emChatClient) SendImageMessage(token, fromUsername string, toUsernames 
 		"Content-Type":  "application/json;charset=utf-8",
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//设置json数据
@@ -381,7 +385,8 @@ func (c *emChatClient) GetOfflineMessageCount(token, username string) (*OfflineM
 	headers := map[string]string{
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//发送请求
@@ -420,7 +425,8 @@ func (c *emChatClient) Offline(token, username string) (*OfflineResponse, error)
 		"Content-Type":  "application/json",
 		"Authorization": authorization,
 	}
-	request := glib.NewHttpRequest()
+
+	request := ghttp.NewHttpRequest()
 	request.SetHeaders(headers)
 
 	//发送请求
